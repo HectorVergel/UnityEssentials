@@ -7,6 +7,7 @@ public class GameDataManager : MonoBehaviour
 
     [Header("File Storage Config")]
     [SerializeField] private string fileName;
+    [SerializeField] private bool useEncryption;
 
 
     public static GameDataManager instance;
@@ -30,7 +31,7 @@ public class GameDataManager : MonoBehaviour
     private void Start()
     {
         gameDataHolders = FindAllGameDataHolders();
-        dataHandler = new FileDataHandler(Application.persistentDataPath, fileName);
+        dataHandler = new FileDataHandler(Application.persistentDataPath, fileName, useEncryption);
 
         LoadGame();
     }
@@ -46,18 +47,28 @@ public class GameDataManager : MonoBehaviour
         {
             dataObj.SaveData(ref gameData);
         }
+        /** We save the data into the data handler */
 
         dataHandler.Save(gameData); 
     }
 
     public void LoadGame()
     {
+        /** Load any data saved in the Data Handler */
+        
         this.gameData = dataHandler.Load();
 
         if (this.gameData == null)
         {
             Debug.LogError("No game data was found. Initializating data to default");
             NewGame();
+        }
+
+        /** We send the data to load to any script who need it */
+
+        foreach(IGameData _dataObj in gameDataHolders)
+        {
+            _dataObj.LoadData(gameData);
         }
     }
 
